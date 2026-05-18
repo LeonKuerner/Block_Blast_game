@@ -1,0 +1,79 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-53c4ce226f945ba5f6a3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Block_Blast",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Block_Blast::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Block_Blast-Debug-5d01be3a459245ebc200.json",
+					"name" : "Block_Blast",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Block_Blast_autogen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Block_Blast_autogen-Debug-d2b46289b0268c71b270.json",
+					"name" : "Block_Blast_autogen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Block_Blast_autogen_timestamp_deps::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Block_Blast_autogen_timestamp_deps-Debug-89a869cfe6345cecc017.json",
+					"name" : "Block_Blast_autogen_timestamp_deps",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/leonk/Desktop/Software/Blockblast/build/Desktop_Qt_6_11_0_MinGW_64_bit-Debug",
+		"source" : "C:/Users/leonk/Desktop/Software/Blockblast"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}
