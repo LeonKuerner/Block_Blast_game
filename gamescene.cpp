@@ -184,14 +184,14 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
         for (const auto &row : block.getShape()) {
             for (int val : row) {
                 if (val != 0)
-                    score += 10;
+                    score += 1;
             }
         }
 
         //clear lines gibt punkte
         int clearedLines = board.clearFullLines();
         if (clearedLines > 0) {
-            score += clearedLines * 100;
+            score += clearedLines * 80;
         }
 
         updateScoreDisplay();
