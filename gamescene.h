@@ -3,9 +3,9 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
-#include "gameboard.h"
 #include "block.h"
 #include "blockitem.h"
+#include "gameboard.h"
 
 class GameScene : public QGraphicsScene
 {
@@ -13,11 +13,11 @@ class GameScene : public QGraphicsScene
 
 private:
     GameBoard board;
-    BlockItem* UIBlocks[3];
+    BlockItem *UIBlocks[3];
     bool slotOccupied[3];
 
     int score;
-    QGraphicsTextItem* scoreDisplay;
+    QGraphicsTextItem *scoreDisplay;
 
     const int cellSize = 40;
     const int offsetX = 40;
@@ -32,8 +32,8 @@ private:
 public:
     GameScene(QObject *parent = nullptr);
 
-    // Diese Methode wird jetzt vom BlockItem aufgerufen, wenn es losgelassen wird:
-    void handleBlockPlacement(BlockItem* draggedItem);
+    //wird aufgerufen wenn block losgelassen wird
+    void handleBlockPlacement(BlockItem *draggedItem);
 };
 
 #endif // GAME_SCENE_H

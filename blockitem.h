@@ -1,23 +1,23 @@
 #ifndef BLOCKITEM_H
 #define BLOCKITEM_H
 
+#include <QColor>
 #include <QGraphicsItemGroup>
 #include <QGraphicsSceneMouseEvent>
-#include <QColor>
 #include "block.h"
 
 class BlockItem : public QGraphicsItemGroup
 {
 private:
-    Block blockData;
+    Block block_;
     QPointF originalPosition;
     bool isDragging;
-    int slotIndex; // 0, 1 oder 2 für die Auslage unten
+    int slotIndex; //0 bis 2 für auswahl unten
 
-    QColor getColorFromString(const std::string& colorName);
+    QColor getColorFromString(const std::string &colorName);
 
 public:
-    BlockItem(const Block& block, int slotIndex, QGraphicsItem* parent = nullptr);
+    BlockItem(const Block &block, int slotIndex, QGraphicsItem *parent = nullptr);
 
     Block getBlockData() const;
     int getSlotIndex() const { return slotIndex; }

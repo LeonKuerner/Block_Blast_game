@@ -23,7 +23,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Block_Blast
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        Block.h
+        block.h
         block.cpp
         gameboard.h gameboard.cpp
         gamescene.h gamescene.cpp

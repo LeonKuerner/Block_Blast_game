@@ -1,69 +1,66 @@
 #include "gameboard.h"
 
-// Konstruktor: Initialisiert das 8x8 Spielfeld komplett mit Nullen (0 = leer)
+//Konstruktor
 GameBoard::GameBoard()
 {
-    // ROWS und COLS sind in gameboard.h als 8 definiert
+    //ROWS und COLS constants aus header
     grid = std::vector<std::vector<int>>(ROWS, std::vector<int>(COLS, 0));
 }
 
-// Prüft, ob ein Block an einer bestimmten Position platziert werden DARF
-bool GameBoard::canPlaceBlock(const Block& block, int startRow, int startCol) const {
-    // Wir holen uns die Form des Blocks (z.B. eine 3x3 Matrix)
+bool GameBoard::canPlaceBlock(const Block &block, int startRow, int startCol) const
+{
     std::vector<std::vector<int>> shape = block.getShape();
 
-    // Wir loopen NUR über die Zeilen und Spalten des BLOCKS, nicht des Spielfelds!
+    //loop über block nicht spielfeld
     for (size_t r = 0; r < shape.size(); ++r) {
         for (size_t c = 0; c < shape[r].size(); ++c) {
-
-            // Wenn an dieser Stelle im Block überhaupt ein Stein existiert (Wert ist 1)
+            //wenn an dieser stelle im block überhaupt ein Stein existiert (wert ist 1)
             if (shape[r][c] != 0) {
-                // Berechne die absolute Position auf dem Spielfeld
+                //berechnet die absolute position auf dem spielfeld
                 int targetRow = startRow + r;
                 int targetCol = startCol + c;
 
-                // 1. Prüfen, ob der Block über den Spielfeldrand hinausragt
+                //prüfen ob der block über den spielfeldrand rausgeht
                 if (targetRow < 0 || targetRow >= ROWS || targetCol < 0 || targetCol >= COLS) {
-                    return false; // Passt nicht, bricht sofort ab
+                    return false;
                 }
 
-                // 2. Prüfen, ob der Platz auf dem Spielfeld bereits besetzt ist (!= 0)
+                //prüfen ob platz schon besetzt
                 if (grid[targetRow][targetCol] != 0) {
-                    return false; // Kollision, bricht sofort ab
+                    return false;
                 }
             }
         }
     }
-    return true; // Keine Kollisionen gefunden: Der Block passt!
+    return true; //keine kollisionen
 }
 
-// Platziert den Block permanent auf dem Spielfeld
-void GameBoard::placeBlock(const Block& block, int startRow, int startCol) {
-    // Sicherheitsprüfung: Nur platzieren, wenn es auch wirklich erlaubt ist
+void GameBoard::placeBlock(const Block &block, int startRow, int startCol)
+{
+    //kollisions und oob check
     if (!canPlaceBlock(block, startRow, startCol)) {
         return;
     }
 
     std::vector<std::vector<int>> shape = block.getShape();
 
-    // Trage die Blockteile in das Spielfeld-Grid ein
+    //block ins feld eintragen
     for (size_t r = 0; r < shape.size(); ++r) {
         for (size_t c = 0; c < shape[r].size(); ++c) {
             if (shape[r][c] != 0) {
-                // Hier tragen wir z.B. eine 1 ein, um zu zeigen: Besetzt!
-                // Später kannst du hier auch Farb-IDs eintragen.
+                //placeholder 1 todo: farb id einbauen
                 grid[startRow + r][startCol + c] = 1;
             }
         }
     }
 }
 
-// Findet volle Zeilen/Spalten, löscht sie und gibt die Anzahl zurück
-int GameBoard::clearFullLines() {
+int GameBoard::clearFullLines()
+{
     std::vector<int> volleZeilen;
     std::vector<int> volleSpalten;
 
-    // 1. Horizontale Zeilen prüfen
+    //horizontal
     for (int r = 0; r < ROWS; ++r) {
         bool istVoll = true;
         for (int c = 0; c < COLS; ++c) {
@@ -77,7 +74,7 @@ int GameBoard::clearFullLines() {
         }
     }
 
-    // 2. Vertikale Spalten prüfen
+    //vertikal
     for (int c = 0; c < COLS; ++c) {
         bool istVoll = true;
         for (int r = 0; r < ROWS; ++r) {
@@ -91,25 +88,25 @@ int GameBoard::clearFullLines() {
         }
     }
 
-    // 3. Volle Zeilen löschen
+    //volle zeile löschen
     for (int r : volleZeilen) {
         for (int c = 0; c < COLS; ++c) {
             grid[r][c] = 0;
         }
     }
 
-    // 4. Volle Spalten löschen
+    //volle spalte löschen
     for (int c : volleSpalten) {
         for (int r = 0; r < ROWS; ++r) {
             grid[r][c] = 0;
         }
     }
 
-    // Gibt die Summe der gelöschten Linien zurück (wichtig für die Punkte!)
+    //für punkte system
     return volleZeilen.size() + volleSpalten.size();
 }
 
-// Gibt den aktuellen Zustand des Spielfelds zurück (für die GUI)
-std::vector<std::vector<int>> GameBoard::getGrid() const {
+std::vector<std::vector<int>> GameBoard::getGrid() const
+{
     return grid;
 }

@@ -6,13 +6,13 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // 1. Erstelle die Szene (unsere Logik + Grafik-Inhalt)
+    //szene erstellen
     GameScene *scene = new GameScene();
 
-    // 2. Erstelle die View (das eigentliche UI-Fenster, das die Szene anzeigt)
+    //view ist eigentliches ui window
     QGraphicsView view(scene);
-    view.setWindowTitle("Block Blast Klon in Qt");
-    view.resize(450, 650); // Etwas größer als die Szene selbst
+    view.setWindowTitle("Block Blast");
+    view.resize(450, 650);
     view.show();
 
     return a.exec();
