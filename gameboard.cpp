@@ -49,7 +49,22 @@ void GameBoard::placeBlock(const Block &block, int startRow, int startCol)
         for (size_t c = 0; c < shape[r].size(); ++c) {
             if (shape[r][c] != 0) {
                 //placeholder 1 todo: farb id einbauen
-                grid[startRow + r][startCol + c] = 1;
+                string color = block.getColor();
+                int colorid = 1;
+
+                if(color == "red"){
+                    colorid = 1;
+                } else if (color == "blue"){
+                    colorid = 2;
+                } else if (color == "green"){
+                    colorid = 3;
+                } else if (color == "yellow"){
+                    colorid = 4;
+                } else if (color == "orange"){
+                    colorid = 5;
+                }
+
+                grid[startRow + r][startCol + c] = colorid;
             }
         }
     }
