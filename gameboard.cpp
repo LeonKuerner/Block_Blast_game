@@ -6,7 +6,11 @@ GameBoard::GameBoard()
     //ROWS und COLS constants aus header
     grid = std::vector<std::vector<int>>(ROWS, std::vector<int>(COLS, 0));
 }
-
+void GameBoard::reset()
+{
+    // Füllt das gesamte Spielfeld wieder mit 0 (leer)
+    grid = std::vector<std::vector<int>>(ROWS, std::vector<int>(COLS, 0));
+}
 bool GameBoard::canPlaceBlock(const Block &block, int startRow, int startCol) const
 {
     std::vector<std::vector<int>> shape = block.getShape();

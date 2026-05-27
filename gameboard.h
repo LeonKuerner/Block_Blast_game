@@ -22,6 +22,7 @@ public:
 
     //Zeilen und Spalten
     int clearFullLines();
+    void reset();
 
     std::vector<std::vector<int>> getGrid() const;
 };

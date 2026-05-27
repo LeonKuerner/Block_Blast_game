@@ -4,6 +4,12 @@
 #include <QPen>
 #include <cstdlib>
 #include <ctime>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QApplication>
+#include <QTimer>
+#include <QGraphicsDropShadowEffect>
+#include <QGraphicsProxyWidget> // NEU: Benötigt für das Einbetten des Buttons
 
 GameScene::GameScene(QObject *parent)
     : QGraphicsScene(parent)
@@ -25,6 +31,35 @@ GameScene::GameScene(QObject *parent)
     addItem(scoreDisplay);
     updateScoreDisplay();
 
+    // --- NEU: DAUERHAFTER RESTART-BUTTON ---
+    QPushButton *mainRestartButton = new QPushButton("Resart");
+    // Ein bisschen Styling, damit er gut aussieht
+    mainRestartButton->setFont(QFont("Arial", 12, QFont::Bold));
+    mainRestartButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #FF0000;" // Schönes Grün
+        "   color: white;"
+        "   border-radius: 5px;"
+        "   padding: 6px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #8B0000;" // Dunkler beim Drüberfahren
+        "}"
+        );
+    mainRestartButton->setFixedWidth(120);
+
+    // Button in die Scene einbetten
+    QGraphicsProxyWidget *proxy = addWidget(mainRestartButton);
+
+    // Positionieren: Unten zentriert (z.B. bei Y = 600, da die Szene 650 hoch ist)
+    double buttonX = (400.0 - mainRestartButton->width()) / 2.0;
+    proxy->setPos(buttonX, 600);
+    proxy->setZValue(10); // Sicherstellen, dass der Button immer ganz oben liegt
+
+    // Verbindung herstellen: Klick startet das Spiel neu
+    connect(mainRestartButton, &QPushButton::clicked, this, &GameScene::restartGame);
+    // ---------------------------------------
+
     drawBoard();
     spawnNewBlocks();
 }
@@ -40,6 +75,7 @@ void GameScene::drawBoard()
     QList<QGraphicsItem *> allItems = items();
     for (QGraphicsItem *item : allItems) {
         if (item != scoreDisplay && !dynamic_cast<BlockItem *>(item)) {
+            // NEU: Sicherstellen, dass wir nicht aus Versehen das Proxy-Widget des Buttons löschen!
             if (dynamic_cast<QGraphicsRectItem *>(item) && item->parentItem() == nullptr) {
                 removeItem(item);
                 delete item;
@@ -96,15 +132,10 @@ Block GameScene::generateRandomBlockData()
 {
     std::vector<std::vector<std::vector<int>>> templates = {
         {{1, 1}, {1, 1}}, //2x2 quadrat
-
         {{1, 1, 1}}, //3x1 linie horizontal
-
         {{1}, {1}, {1}}, //1x3 linie vertikal
-
         {{1, 0}, {1, 0}, {1, 1}}, //l stück
-
         {{1, 1, 1}, {0, 1, 0}}, //t stück
-
         {{1}} //1x1 block
     };
     std::vector<std::string> colors = {"red", "blue", "green", "yellow", "orange"};
@@ -123,6 +154,7 @@ Block GameScene::generateRandomBlockData()
 
     return Block(colors[randomColorIdx], shape);
 }
+
 void GameScene::spawnNewBlocks()
 {
     if (slotOccupied[0] || slotOccupied[1] || slotOccupied[2])
@@ -151,7 +183,6 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
     if (!draggedItem)
         return;
 
-    //get block position
     QPointF itemPos = draggedItem->pos();
     Block block = draggedItem->getBlockData();
     auto shape = block.getShape();
@@ -180,7 +211,6 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
     if (board.canPlaceBlock(block, targetRow, targetCol)) {
         board.placeBlock(block, targetRow, targetCol);
 
-        //punkte für gesetzten block berechnen
         for (const auto &row : block.getShape()) {
             for (int val : row) {
                 if (val != 0)
@@ -188,7 +218,6 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
             }
         }
 
-        //clear lines gibt punkte
         int clearedLines = board.clearFullLines();
         if (clearedLines > 0) {
             score += clearedLines * 80;
@@ -196,17 +225,14 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
 
         updateScoreDisplay();
 
-        //gesetzten block aufräumen
         int slot = draggedItem->getSlotIndex();
         removeItem(draggedItem);
         delete draggedItem;
         UIBlocks[slot] = nullptr;
         slotOccupied[slot] = false;
 
-        //spielfeld aktualisieren
         drawBoard();
 
-        //wenn auswahl leer 3 neue blöcke
         if (!slotOccupied[0] && !slotOccupied[1] && !slotOccupied[2]) {
             spawnNewBlocks();
         }
@@ -216,6 +242,36 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
         draggedItem->resetPosition();
     }
 }
+
+void GameScene::restartGame()
+{
+
+    QList<QGraphicsItem *> allItems = items();
+    for (QGraphicsItem *item : allItems) {
+        QGraphicsTextItem *textItem = dynamic_cast<QGraphicsTextItem*>(item);
+        if (textItem && textItem->toPlainText() == "GAME OVER") {
+            removeItem(textItem);
+            delete textItem;
+        }
+    }
+
+    score = 0;
+    updateScoreDisplay();
+    board.reset();
+
+    for (int i = 0; i < 3; ++i) {
+        if (UIBlocks[i]) {
+            removeItem(UIBlocks[i]);
+            delete UIBlocks[i];
+            UIBlocks[i] = nullptr;
+        }
+        slotOccupied[i] = false;
+    }
+
+    drawBoard();
+    spawnNewBlocks();
+}
+
 void GameScene::checkGameOver()
 {
     bool movePossible = false;
@@ -224,7 +280,6 @@ void GameScene::checkGameOver()
         if (slotOccupied[i] && UIBlocks[i]) {
             Block block = UIBlocks[i]->getBlockData();
 
-            //prüfen ob es noch platz gibt
             for (int r = 0; r < 8; ++r) {
                 for (int c = 0; c < 8; ++c) {
                     if (board.canPlaceBlock(block, r, c)) {
@@ -242,9 +297,24 @@ void GameScene::checkGameOver()
 
     if (!movePossible && (slotOccupied[0] || slotOccupied[1] || slotOccupied[2])) {
         QGraphicsTextItem *gameOverText = new QGraphicsTextItem("GAME OVER");
-        gameOverText->setDefaultTextColor(Qt::red);
-        gameOverText->setFont(QFont("Arial", 32, QFont::Bold));
-        gameOverText->setPos(70, 240);
+        gameOverText->setDefaultTextColor(QColor(230, 50, 50));
+        gameOverText->setFont(QFont("Impact", 40, QFont::Bold));
+
+        double textWidth = gameOverText->boundingRect().width();
+        double textHeight = gameOverText->boundingRect().height();
+
+        double centerX = (400.0 - textWidth) / 2.0;
+        double centerY = (650.0 - textHeight) / 2.0;
+
+        gameOverText->setPos(centerX, centerY);
+
+        QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect();
+        shadow->setBlurRadius(8);
+        shadow->setColor(QColor(0, 0, 0, 180));
+        shadow->setOffset(4, 4);
+
+        gameOverText->setGraphicsEffect(shadow);
         addItem(gameOverText);
+
     }
 }

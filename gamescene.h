@@ -31,7 +31,7 @@ private:
 
 public:
     GameScene(QObject *parent = nullptr);
-
+    void restartGame();
     //wird aufgerufen wenn block losgelassen wird
     void handleBlockPlacement(BlockItem *draggedItem);
 };
