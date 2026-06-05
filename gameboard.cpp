@@ -56,15 +56,15 @@ void GameBoard::placeBlock(const Block &block, int startRow, int startCol)
                 string color = block.getColor();
                 int colorid = 1;
 
-                if(color == "red"){
+                if (color == "red") {
                     colorid = 1;
-                } else if (color == "blue"){
+                } else if (color == "blue") {
                     colorid = 2;
-                } else if (color == "green"){
+                } else if (color == "green") {
                     colorid = 3;
-                } else if (color == "yellow"){
+                } else if (color == "yellow") {
                     colorid = 4;
-                } else if (color == "orange"){
+                } else if (color == "orange") {
                     colorid = 5;
                 }
 

@@ -1,15 +1,15 @@
 #include "gamescene.h"
-#include <QBrush>
-#include <QGraphicsRectItem>
-#include <QPen>
-#include <cstdlib>
-#include <ctime>
-#include <QMessageBox>
-#include <QPushButton>
 #include <QApplication>
-#include <QTimer>
+#include <QBrush>
 #include <QGraphicsDropShadowEffect>
 #include <QGraphicsProxyWidget> // NEU: Benötigt für das Einbetten des Buttons
+#include <QGraphicsRectItem>
+#include <QMessageBox>
+#include <QPen>
+#include <QPushButton>
+#include <QTimer>
+#include <cstdlib>
+#include <ctime>
 
 GameScene::GameScene(QObject *parent)
     : QGraphicsScene(parent)
@@ -35,17 +35,15 @@ GameScene::GameScene(QObject *parent)
     QPushButton *mainRestartButton = new QPushButton("Resart");
     // Ein bisschen Styling, damit er gut aussieht
     mainRestartButton->setFont(QFont("Arial", 12, QFont::Bold));
-    mainRestartButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: #FF0000;" // Schönes Grün
-        "   color: white;"
-        "   border-radius: 5px;"
-        "   padding: 6px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #8B0000;" // Dunkler beim Drüberfahren
-        "}"
-        );
+    mainRestartButton->setStyleSheet("QPushButton {"
+                                     "   background-color: #FF0000;" // Schönes Grün
+                                     "   color: white;"
+                                     "   border-radius: 5px;"
+                                     "   padding: 6px;"
+                                     "}"
+                                     "QPushButton:hover {"
+                                     "   background-color: #8B0000;" // Dunkler beim Drüberfahren
+                                     "}");
     mainRestartButton->setFixedWidth(120);
 
     // Button in die Scene einbetten
@@ -130,20 +128,43 @@ void GameScene::drawBoard()
 
 Block GameScene::generateRandomBlockData()
 {
-    std::vector<std::vector<std::vector<int>>> templates = {
-        {{1, 1}, {1, 1}}, //2x2 quadrat
-        {{1, 1, 1}}, //3x1 linie horizontal
-        {{1}, {1}, {1}}, //1x3 linie vertikal
-        {{1, 0}, {1, 0}, {1, 1}}, //l stück
-        {{1, 1, 1}, {0, 1, 0}}, //t stück
-        {{1}} //1x1 block
+    std::vector<std::vector<std::vector<int>>> empty_template = {
+        {{0}}
     };
+    std::vector<std::vector<std::vector<int>>> templates = {
+        {{1, 1}, {1, 1}},                   //2x2 quadrat
+        {{0, 1}, {0, 1}, {1, 1}},           //gespiegeltes l stück
+        {{1, 1}, {0, 1}, {0, 1}},           //l gespegelt umgedreht
+        {{1, 1, 1}},                        //3x1 linie horizontal
+        {{1, 1, 1}, {0, 1, 0}},             //t stück
+        {{0, 1, 0}, {1, 1, 1}},             //umgedrehtes t stück
+        {{1, 1}, {1, 1}, {1, 1}},           //2x3 block
+        {{1}}                               //1x1 block
+    };
+
+    std::vector<std::vector<std::vector<int>>> templates_prio = {
+        {{1, 0}, {1, 0}, {1, 1}},           //l stück
+        {{1, 1}, {1, 0}, {1, 0}},           //l umgedreht
+        {{1, 1, 1}, {1, 1, 1}},             //3x2 block
+        {{1}, {1}, {1}},                    //1x3 linie vertikal
+
+    };
+
     std::vector<std::string> colors = {"red", "blue", "green", "yellow", "orange"};
 
-    int randomShapeIdx = rand() % templates.size();
+    int randomTamplate = rand() % 4;
     int randomColorIdx = rand() % colors.size();
 
-    auto shape = templates[randomShapeIdx];
+    std::vector<std::vector<int>> shape;
+    if( randomTamplate <= 1) {
+        int randomShapeIdx = rand() % templates.size();
+        shape = templates[randomShapeIdx];
+    } else {
+        int randomShapeIdx = rand() % templates_prio.size();
+        shape = templates_prio[randomShapeIdx];
+    }
+
+
     int colorId = randomColorIdx + 1;
     for (size_t r = 0; r < shape.size(); ++r) {
         for (size_t c = 0; c < shape[r].size(); ++c) {
@@ -245,10 +266,9 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
 
 void GameScene::restartGame()
 {
-
     QList<QGraphicsItem *> allItems = items();
     for (QGraphicsItem *item : allItems) {
-        QGraphicsTextItem *textItem = dynamic_cast<QGraphicsTextItem*>(item);
+        QGraphicsTextItem *textItem = dynamic_cast<QGraphicsTextItem *>(item);
         if (textItem && textItem->toPlainText() == "GAME OVER") {
             removeItem(textItem);
             delete textItem;
@@ -315,6 +335,5 @@ void GameScene::checkGameOver()
 
         gameOverText->setGraphicsEffect(shadow);
         addItem(gameOverText);
-
     }
 }

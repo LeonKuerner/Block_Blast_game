@@ -84,7 +84,6 @@ void BlockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
     QGraphicsScene *currentScene = scene();
     if (currentScene) {
-
         GameScene *gameScene = dynamic_cast<GameScene *>(currentScene);
         if (gameScene) {
             gameScene->handleBlockPlacement(this);
