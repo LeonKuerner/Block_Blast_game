@@ -1,4 +1,5 @@
 #include "menuwindow.h"
+#include "mainwindow.h"
 #include "gamescene.h"
 
 #include <QGraphicsView>
@@ -52,12 +53,10 @@ MenuWindow::MenuWindow(QWidget *parent)
 
 void MenuWindow::startGame()
 {
-    GameScene *scene = new GameScene();
+    // HIER WAR DER FEHLER: Wir erstellen jetzt das richtige MainWindow
+    MainWindow *mainWindow = new MainWindow();
+    mainWindow->setAttribute(Qt::WA_DeleteOnClose); // Gibt den Speicher beim Schließen frei
+    mainWindow->show(); // Zeigt das eigentliche Spielfenster an
 
-    QGraphicsView *view = new QGraphicsView(scene);
-    view->setWindowTitle("Block Blast");
-    view->resize(450, 650);
-    view->show();
-
-    close();
+    close(); // Schließt das Hauptmenü
 }

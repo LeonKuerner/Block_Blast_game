@@ -6,12 +6,14 @@
 #include "block.h"
 #include "blockitem.h"
 #include "gameboard.h"
+#include "menuwindow.h"
 
 class GameScene : public QGraphicsScene
 {
     Q_OBJECT
 
 private:
+
     GameBoard board;
     BlockItem *UIBlocks[3];
     bool slotOccupied[3];
@@ -28,7 +30,8 @@ private:
     void spawnNewBlocks();
     Block generateRandomBlockData();
     void checkGameOver();
-
+signals:
+    void returnToMenuRequested();
 public:
     GameScene(QObject *parent = nullptr);
     void restartGame();

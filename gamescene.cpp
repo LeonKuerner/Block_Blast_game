@@ -404,8 +404,7 @@ void GameScene::restartGame()
         slotOccupied[i] = false;
     }
 
-    drawBoard();
-    spawnNewBlocks();
+    emit returnToMenuRequested();
 }
 
 void GameScene::checkGameOver()
