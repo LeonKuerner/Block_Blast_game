@@ -187,20 +187,20 @@ void GameScene::drawBoard()
 Block GameScene::generateRandomBlockData()
 {
     std::vector<std::vector<std::vector<int>>> templates = {
-        {{1, 1}, {1, 1}},
-        {{0, 1}, {0, 1}, {1, 1}},
-        {{1, 1}, {0, 1}, {0, 1}},
-        {{1, 1, 1}},
-        {{1, 1, 1}, {0, 1, 0}},
-        {{0, 1, 0}, {1, 1, 1}},
-        {{1, 1}, {1, 1}, {1, 1}},
-        {{1}}};
+                                                            {{1, 1}, {1, 1}},
+                                                            {{0, 1}, {0, 1}, {1, 1}},
+                                                            {{1, 1}, {0, 1}, {0, 1}},
+                                                            {{1, 1, 1}},
+                                                            {{1, 1, 1}, {0, 1, 0}},
+                                                            {{0, 1, 0}, {1, 1, 1}},
+                                                            {{1, 1}, {1, 1}, {1, 1}},
+                                                            {{1}}};
 
     std::vector<std::vector<std::vector<int>>> templates_prio = {
-        {{1, 0}, {1, 0}, {1, 1}},
-        {{1, 1}, {1, 0}, {1, 0}},
-        {{1, 1, 1}, {1, 1, 1}},
-        {{1}, {1}, {1}}};
+                                                                 {{1, 0}, {1, 0}, {1, 1}},
+                                                                 {{1, 1}, {1, 0}, {1, 0}},
+                                                                 {{1, 1, 1}, {1, 1, 1}},
+                                                                 {{1}, {1}, {1}}};
 
     std::vector<std::string> colors = {"red", "blue", "green", "yellow", "orange"};
 
@@ -404,7 +404,8 @@ void GameScene::restartGame()
         slotOccupied[i] = false;
     }
 
-    emit returnToMenuRequested();
+    drawBoard();
+    spawnNewBlocks();
 }
 
 void GameScene::checkGameOver()
