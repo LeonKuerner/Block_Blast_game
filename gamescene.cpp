@@ -86,6 +86,29 @@ GameScene::GameScene(QObject *parent)
     addItem(scoreDisplay);
     updateScoreDisplay();
 
+    QPushButton *menuButton = new QPushButton("↩"); // Unicode-Pfeil als Symbol
+    menuButton->setFont(QFont("Arial", 14, QFont::Bold));
+    menuButton->setFixedSize(30, 30); // Schön klein und quadratisch
+    menuButton->setStyleSheet("QPushButton {"
+                              "   background-color: #555555;"
+                              "   color: white;"
+                              "   border-radius: 5px;"
+                              "   padding: 0px;"
+                              "}"
+                              "QPushButton:hover {"
+                              "   background-color: #333333;"
+                              "}");
+
+    QGraphicsProxyWidget *menuProxy = addWidget(menuButton);
+    // Positioniert oben rechts (Szenebreite 400 - Buttonbreite 30 - 30px Rand = 340)
+    menuProxy->setPos(340, 15);
+    menuProxy->setZValue(10);
+
+    // Verbindet den Button mit dem bereits in gamescene.h definierten Signal
+    connect(menuButton, &QPushButton::clicked, this, [this]() {
+        emit returnToMenuRequested();
+    });
+
     QPushButton *mainRestartButton = new QPushButton("Restart");
     mainRestartButton->setFont(QFont("Arial", 12, QFont::Bold));
     mainRestartButton->setStyleSheet("QPushButton {"
@@ -444,24 +467,53 @@ void GameScene::checkGameOver()
 
     if (!movePossible && (slotOccupied[0] || slotOccupied[1] || slotOccupied[2]))
     {
-        QGraphicsTextItem *gameOverText = new QGraphicsTextItem("GAME OVER");
-        gameOverText->setDefaultTextColor(QColor(230, 50, 50));
-        gameOverText->setFont(QFont("Impact", 40, QFont::Bold));
+        QMessageBox gameOverBox;
+        gameOverBox.setWindowTitle("Spiel vorbei");
 
-        double textWidth = gameOverText->boundingRect().width();
-        double textHeight = gameOverText->boundingRect().height();
+        // 2. Styling verpassen (Layout für Buttons hinzugefügt)
+        gameOverBox.setStyleSheet(
+            "QMessageBox {"
+            "   background-color: #2c3e50;"
+            "   color: white;"
+            "   font-family: 'Arial';"
+            "}"
+            "QLabel {"
+            "   color: white;"
+            "   font-size: 16px;"
+            "   qproperty-alignment: 'AlignCenter';" /* Zentriert den Text */
+            "   min-width: 280px;"
+            "}"
+            /* HIER NEU: Das interne Layout-Element für die Buttons ansprechen und zentrieren */
+            "QMessageBox QDialogButtonBox {"
+            "   qproperty-centerButtons: true;"
+            "}"
+            "QPushButton {"
+            "   background-color: #e63232;"
+            "   color: white;"
+            "   font-size: 14px;"
+            "   font-weight: bold;"
+            "   padding: 8px 24px;"
+            "   border-radius: 4px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: #ff4d4d;"
+            "}"
+            );
 
-        double centerX = (400.0 - textWidth) / 2.0;
-        double centerY = (650.0 - textHeight) / 2.0;
+        // 3. Text & Punktzahl setzen
+        QString message = QString("<center><font size='6' color='#e63232'><b>GAME OVER</b></font><br><br>"
+                                  "Deine erreichte Punktzahl:<br>"
+                                  "<font size='5'><b>%1</b></font></center>").arg(score);
 
-        gameOverText->setPos(centerX, centerY);
+        gameOverBox.setInformativeText(message);
 
-        QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect();
-        shadow->setBlurRadius(8);
-        shadow->setColor(QColor(0, 0, 0, 180));
-        shadow->setOffset(4, 4);
+        // 4. Button hinzufügen
+        gameOverBox.addButton(QMessageBox::Ok);
 
-        gameOverText->setGraphicsEffect(shadow);
-        addItem(gameOverText);
+        // 5. Fenster anzeigen
+        gameOverBox.exec();
+
+        // 6. Automatisch das Spielfeld zurücksetzen
+        restartGame();
     }
 }
