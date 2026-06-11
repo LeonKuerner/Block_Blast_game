@@ -13,10 +13,15 @@
 #include <QPushButton>
 #include <QRandomGenerator>
 #include <QTimer>
+#include <QSettings>      // HIER ERGÄNZT
+#include <QInputDialog>   // HIER ERGÄNZT
+#include <QCoreApplication>// HIER ERGÄNZT
+#include <QDir>           // HIER ERGÄNZT
 
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -86,9 +91,9 @@ GameScene::GameScene(QObject *parent)
     addItem(scoreDisplay);
     updateScoreDisplay();
 
-    QPushButton *menuButton = new QPushButton("↩"); // Unicode-Pfeil als Symbol
+    QPushButton *menuButton = new QPushButton("↩");
     menuButton->setFont(QFont("Arial", 14, QFont::Bold));
-    menuButton->setFixedSize(30, 30); // Schön klein und quadratisch
+    menuButton->setFixedSize(30, 30);
     menuButton->setStyleSheet("QPushButton {"
                               "   background-color: #555555;"
                               "   color: white;"
@@ -100,11 +105,9 @@ GameScene::GameScene(QObject *parent)
                               "}");
 
     QGraphicsProxyWidget *menuProxy = addWidget(menuButton);
-    // Positioniert oben rechts (Szenebreite 400 - Buttonbreite 30 - 30px Rand = 340)
     menuProxy->setPos(340, 15);
     menuProxy->setZValue(10);
 
-    // Verbindet den Button mit dem bereits in gamescene.h definierten Signal
     connect(menuButton, &QPushButton::clicked, this, [this]() {
         emit returnToMenuRequested();
     });
@@ -137,6 +140,61 @@ GameScene::GameScene(QObject *parent)
 void GameScene::updateScoreDisplay()
 {
     scoreDisplay->setPlainText("Punkte: " + QString::number(score));
+}
+
+QList<GameScene::HighscoreEntry> GameScene::loadHighscores()
+{
+    // Bestimmt den Pfad direkt im Git / Build-Ordner der ausführbaren Datei
+    QString iniPath = QDir(QCoreApplication::applicationDirPath()).filePath("highscores.ini");
+    QSettings settings(iniPath, QSettings::IniFormat);
+    QList<HighscoreEntry> highscores;
+
+    for (int i = 0; i < 5; ++i) {
+        QString name = settings.value(QString("Highscore/Rank_%1_Name").arg(i), "Unbekannt").toString();
+        int scoreVal = settings.value(QString("Highscore/Rank_%1_Score").arg(i), 0).toInt();
+        highscores.append({name, scoreVal});
+    }
+    return highscores;
+}
+
+void GameScene::checkAndSaveHighscore()
+{
+    QList<HighscoreEntry> highscores = loadHighscores();
+
+    // Falls die Liste leer ist, füllen wir sie temporär auf, damit .last() nicht abstürzt
+    while(highscores.size() < 5) {
+        highscores.append({"Unbekannt", 0});
+    }
+
+    if (score > highscores.last().score || highscores.size() < 5) {
+        bool ok;
+        QString spielerName = QInputDialog::getText(nullptr,
+                                                    "Neuer Highscore!",
+                                                    "Herzlichen Glückwunsch! Trage deinen Namen ein:",
+                                                    QLineEdit::Normal,
+                                                    "Spieler", &ok);
+
+        if (!ok || spielerName.isEmpty()) {
+            spielerName = "Anonym";
+        }
+
+        highscores.append({spielerName, score});
+
+        std::sort(highscores.begin(), highscores.end(), [](const HighscoreEntry &a, const HighscoreEntry &b) {
+            return a.score > b.score;
+        });
+
+        while (highscores.size() > 5) {
+            highscores.removeLast();
+        }
+
+        QString iniPath = QDir(QCoreApplication::applicationDirPath()).filePath("highscores.ini");
+        QSettings settings(iniPath, QSettings::IniFormat);
+        for (int i = 0; i < highscores.size(); ++i) {
+            settings.setValue(QString("Highscore/Rank_%1_Name").arg(i), highscores[i].name);
+            settings.setValue(QString("Highscore/Rank_%1_Score").arg(i), highscores[i].score);
+        }
+    }
 }
 
 void GameScene::drawBoard()
@@ -370,7 +428,8 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
             QTimer::singleShot(1000, [this, effect]()
                                {
                                    removeItem(effect);
-                                   delete effect; });
+                                   delete effect;
+                               });
         }
 
         updateScoreDisplay();
@@ -387,8 +446,10 @@ void GameScene::handleBlockPlacement(BlockItem *draggedItem)
         {
             spawnNewBlocks();
         }
-
-        checkGameOver();
+        else
+        {
+            checkGameOver();
+        }
     }
     else
     {
@@ -467,10 +528,15 @@ void GameScene::checkGameOver()
 
     if (!movePossible && (slotOccupied[0] || slotOccupied[1] || slotOccupied[2]))
     {
-        QMessageBox gameOverBox;
-        gameOverBox.setWindowTitle("Spiel vorbei");
+        // HIER GEÄNDERT: Erst die Slots auf false setzen, um die Endlosschleife beim restartGame() zu brechen!
+        for(int i = 0; i < 3; ++i) {
+            slotOccupied[i] = false;
+        }
 
-        // 2. Styling verpassen (Layout für Buttons hinzugefügt)
+        // 1. Highscore prüfen, ggf. nach Name fragen und speichern
+        checkAndSaveHighscore();
+
+        QMessageBox gameOverBox;
         gameOverBox.setStyleSheet(
             "QMessageBox {"
             "   background-color: #2c3e50;"
@@ -480,10 +546,9 @@ void GameScene::checkGameOver()
             "QLabel {"
             "   color: white;"
             "   font-size: 16px;"
-            "   qproperty-alignment: 'AlignCenter';" /* Zentriert den Text */
+            "   qproperty-alignment: 'AlignCenter';"
             "   min-width: 280px;"
             "}"
-            /* HIER NEU: Das interne Layout-Element für die Buttons ansprechen und zentrieren */
             "QMessageBox QDialogButtonBox {"
             "   qproperty-centerButtons: true;"
             "}"
@@ -500,20 +565,27 @@ void GameScene::checkGameOver()
             "}"
             );
 
-        // 3. Text & Punktzahl setzen
+        // 2. Aktuelle Top 5 mit Namen laden
+        QList<HighscoreEntry> scores = loadHighscores();
+        QString highscoreListText = "<br><b>🏆 TOP 5 BESTENLISTE 🏆</b><br><table align='center' border='0' cellspacing='5'>";
+
+        for(int i = 0; i < scores.size(); ++i) {
+            if(scores[i].score > 0) {
+                highscoreListText += QString("<tr><td><b>%1.</b></td><td>%2</td><td><b>%3</b> Pkt.</td></tr>")
+                .arg(i+1).arg(scores[i].name).arg(scores[i].score);
+            }
+        }
+        highscoreListText += "</table>";
+
         QString message = QString("<center><font size='6' color='#e63232'><b>GAME OVER</b></font><br><br>"
                                   "Deine erreichte Punktzahl:<br>"
-                                  "<font size='5'><b>%1</b></font></center>").arg(score);
+                                  "<font size='5'><b>%1</b></font><br>"
+                                  "%2</center>").arg(score).arg(highscoreListText);
 
         gameOverBox.setInformativeText(message);
-
-        // 4. Button hinzufügen
         gameOverBox.addButton(QMessageBox::Ok);
-
-        // 5. Fenster anzeigen
         gameOverBox.exec();
 
-        // 6. Automatisch das Spielfeld zurücksetzen
         restartGame();
     }
 }

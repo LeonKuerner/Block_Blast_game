@@ -6,7 +6,8 @@
 #include "block.h"
 #include "blockitem.h"
 #include "gameboard.h"
-#include "menuwindow.h"
+#include <QSettings>
+
 
 class GameScene : public QGraphicsScene
 {
@@ -23,6 +24,14 @@ private:
     const int cellSize = 40;
     const int offsetX = 40;
     const int offsetY = 60;
+
+    struct HighscoreEntry {
+        QString name;
+        int score;
+    };
+
+    void checkAndSaveHighscore();
+    QList<HighscoreEntry> loadHighscores();
 
     void drawBoard();
     void updateScoreDisplay();
